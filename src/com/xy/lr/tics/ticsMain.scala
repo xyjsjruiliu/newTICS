@@ -16,10 +16,12 @@ object ticsMain {
         "--class com.xy.lr.tics.ticsMain TICSServer.jar localhost 9999 10 HBaseInfo.properties StreamingLogs")
       System.exit(0)
     }*/
-    val sparkEngine = new SparkEngine("local[2]","lr")
+    //Engine start
+    val sparkEngine = new SparkEngine("local[2]", "DefaultName", "TICSInfo.properties")
     sparkEngine.start()
 
     Thread.sleep(10000)
+    //start SparkSQLServer
     val t = new SparkSQLServer(sparkEngine, "TICSInfo.properties")
     t.start()
   }

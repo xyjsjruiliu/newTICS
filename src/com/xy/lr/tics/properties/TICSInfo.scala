@@ -1,6 +1,7 @@
 package com.xy.lr.tics.properties
 
-import java.io._
+
+import java.io.{FileNotFoundException, FileInputStream, BufferedInputStream, File}
 import java.util.Properties
 
 /**

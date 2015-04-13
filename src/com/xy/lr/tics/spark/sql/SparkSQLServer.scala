@@ -41,7 +41,7 @@ class SparkSQLServer extends Thread{
   }
   def select(request : String) : String = {
     if(request.startsWith("CG")){
-      sparkEngine.getCarGraph(request)
+      sparkEngine.getCarGraph(request.substring(2,request.length))
     }else{
       ""
     }

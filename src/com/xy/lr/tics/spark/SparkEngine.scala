@@ -3,7 +3,7 @@ package com.xy.lr.tics.spark
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import com.xy.lr.tics.properties.{CarInfo, OldMessage}
+import com.xy.lr.tics.properties.{TICSInfo, CarInfo, OldMessage}
 import com.xy.lr.tics.spark.sql.{CarCaseClass, Person}
 import org.apache.spark.sql.SQLContext
 
@@ -28,16 +28,23 @@ class SparkEngine extends Thread{
   private var CarRDD : RDD[CarInfo] = _
   private var oldMessageRDD : RDD[OldMessage] = _
   private var message : ArrayBuffer[String] = _
+  private var ticsInfo : TICSInfo = _
+  private var deZhouClient : DeZhouClientJava = _
 
 
 //  conf = new SparkConf().setMaster("local[2]").setAppName("defaultApp")
 //  sc = new SparkContext(conf)
 
-  def this(MasterUrl : String, AppName : String){
+  def this(MasterUrl : String, AppName : String, path : String){
     this()
+    //SparkConf
     sparkConf = new SparkConf().setMaster(MasterUrl).setAppName(AppName)
+    //SparkContext
     sparkContext = new SparkContext(sparkConf)
+    //SparkSQlContext
     sqlContext = new org.apache.spark.sql.SQLContext(sparkContext)
+    //配置文件
+    ticsInfo = new TICSInfo(path)
 //    import sqlContext.createSchemaRDD
   }
   def getCarGraph(carNumber : String) : String = {
@@ -47,34 +54,49 @@ class SparkEngine extends Thread{
     })
     val carSchemaRDD = sqlContext.createSchemaRDD(carRDD)
     carSchemaRDD.registerTempTable("car")
-    val graph = sqlContext.sql("select graph from car")
-    graph.collect()(0).toString()
-  }
-  override def run(): Unit ={
-    println("start [ SparkEngine ] at " + getCurrentTime)
+    val sqlResult = sqlContext.sql("select carNumber,graph from car")
 
-    //    @transient var i : Int = 1
+    val carNumberAndGraph = sqlResult.filter( x => {
+      println("###############\n\n" + carNumber + ":" +x(0) + "\n\n#############")
+      if(x(0).equals(carNumber)) true
+      else false
+    })
+    val graph = carNumberAndGraph.map( x => {
+      println("+++++++++++++++++++++++\n" + x + "\n+++++++++++++++++++++")
+      x(1).toString
+    }).collect()
+
+    /*查询结果*/
+    if(graph.length == 0){
+      "no result"
+    }else{
+      graph(0)
+    }
+  }
+  def initSparkEngine(): Unit ={
     rdd = sparkContext.parallelize(List(1))
 
     people = sparkContext.textFile(
       "/home/xylr/software/my_spark/spark-1.0.1-bin-2.4.0/examples/src/main/resources/people.txt")
-
     //数据初始化
     CarRDD = sparkContext.parallelize(new ArrayBuffer[CarInfo]())
     CarRDD.cache()
     oldMessageRDD = sparkContext.parallelize(new ArrayBuffer[OldMessage]())
     oldMessageRDD.cache()
     message = new ArrayBuffer[String]()
-
-    //    jsonFileExample = sqlContext.jsonFile(
-    //      "/home/xylr/software/spark-1.3.0/examples/src/main/resources/people.json")
-    //    jsonFileExample.registerAsTable("people")
-    //    sqlContext.cacheTable("people")
+    //jsonFileExample = sqlContext.jsonFile("/home/xylr/software/spark-1.3.0/examples/src/main/resources/people.json")
+    //jsonFileExample.registerAsTable("people")
+    //sqlContext.cacheTable("people")
 
     //连接卡口服务器
-    val deZhouClient = new DeZhouClientJava("127.0.0.1",9999)
-    @transient var i = 0
+    deZhouClient = new DeZhouClientJava(ticsInfo.getDeZhouServerUrl,
+      ticsInfo.getDeZhouServerPort.toInt)
+  }
+  override def run(): Unit ={
+    println("start [ SparkEngine ] at " + getCurrentTime)
+    initSparkEngine()
 
+    @transient var i = 0
     while(true){
       i = i + 1
       //获得卡口信息
