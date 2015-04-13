@@ -1,12 +1,12 @@
-package com.xy.lr.scala.socket;
+package com.xy.lr.tics.dezhouserver;
 import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class SocketServers {
+public class DeZhouSocketServerJava {
     ServerSocket sever;
-    public SocketServers(int port){
+    public DeZhouSocketServerJava(int port){
         try{
             sever = new ServerSocket(port);
         }catch(IOException e){

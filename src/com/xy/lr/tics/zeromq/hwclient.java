@@ -1,4 +1,4 @@
-package com.xy.lr.java.zeromq;
+package com.xy.lr.tics.zeromq;
 //
 //  Hello World client in Java
 //  Connects REQ socket to tcp://localhost:5555

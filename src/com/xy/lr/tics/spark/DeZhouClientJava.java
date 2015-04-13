@@ -1,12 +1,12 @@
-package com.xy.lr.scala.socket;
+package com.xy.lr.tics.spark;
 
 import java.io.*;
 import java.net.*;
 
-public class SocketClient {
+public class DeZhouClientJava {
     static Socket client;
 
-    public SocketClient(String site, int port){
+    public DeZhouClientJava(String site, int port){
         try{
             client = new Socket(site,port);
 //            System.out.println("Client is created! site:"+site+" port:"+port);

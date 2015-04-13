@@ -1,4 +1,4 @@
-package com.xy.lr.java.zeromq;
+package com.xy.lr.tics.zeromq;
 
 //
 //  Hello World server in Java

@@ -1,9 +1,10 @@
-package com.xy.lr.scala.socket;
+package com.xy.lr.tics.test;
 
 
 public class TestSocketClient {
 
     public static void main(String[] args){
+
 
 //        SocketClient client = new SocketClient("127.0.0.1",12345);
 //        System.out.println(client.sendMsg("nimei1"));

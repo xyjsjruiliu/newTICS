@@ -1,4 +1,4 @@
-package com.xy.lr.java.zeromq
+package com.xy.lr.tics.zeromq
 
 import org.zeromq.ZMQ
 
@@ -10,6 +10,7 @@ class version {
 }
 object version{
   def main(args : Array[String]): Unit ={
-    printf("Version string: %s, Version int: %d\n", ZMQ.getVersionString, ZMQ.getFullVersion)
+    printf("Version string: %s, Version int: %d\n",
+      ZMQ.getVersionString, ZMQ.getFullVersion)
   }
 }

@@ -1,4 +1,4 @@
-package com.xy.lr.scala.socket
+package com.xy.lr.tics.properties
 
 /**
  * Created by xylr on 15-3-13.

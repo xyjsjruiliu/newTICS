@@ -1,13 +1,11 @@
-package com.xy.lr.scala.socket
+package com.xy.lr.tics.spark
 
-import java.net.{SocketException, SocketTimeoutException, Socket, ServerSocket}
-import org.apache.spark.graphx.{Graph, VertexId, Edge, GraphLoader}
-import org.apache.spark.rdd.RDD
-import org.apache.spark.{SparkContext, SparkConf}
+import com.xy.lr.tics.properties.{OldMessage, CarInfo, MapEdgeInfo, MapVertexInfo}
 import org.apache.spark.SparkContext._
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.mutable
 import scala.io.Source
 
 /**
@@ -89,7 +87,7 @@ object Client {
     oldMessageRDD.cache()
     @transient var message = new ArrayBuffer[String]()
 
-    val client = new SocketClient("127.0.0.1",9999)
+    val client = new DeZhouClient("127.0.0.1",9999)
     @transient var i = 0
     while(true){
       i = i + 1
@@ -239,7 +237,7 @@ object Client {
           val tmp = x._2.split(":")
           val cnt = tmp(tmp.length-1)
 //          println(carNumber + "," + cnt)
-          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),x._2)
+          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),x._2,"")
           car
         })
         ca
@@ -267,7 +265,7 @@ object Client {
           val tmp = y._2.split(":")
           val cnt = tmp(tmp.length-1)
           println(carNumber + "," + cnt)
-          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),y._2)
+          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),y._2,"")
           car
         })
         cc
@@ -290,7 +288,7 @@ object Client {
           val tmp = y._2.split(":")
           val cnt = tmp(tmp.length-1)
           println(carNumber + "," + cnt)
-          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),y._2)
+          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),y._2,"")
           car
         })
         cc
@@ -320,7 +318,7 @@ object Client {
           val tmp = y._2.split(":")
           val cnt = tmp(tmp.length-1)
           println(carNumber + "," + cnt)
-          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),y._2)
+          val car = new CarInfo(carNumber,cnt.split(",")(1),cnt.split(",")(0),y._2,"")
           car
         })
         cc
