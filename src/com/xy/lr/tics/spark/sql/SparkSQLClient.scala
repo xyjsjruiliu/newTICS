@@ -55,8 +55,18 @@ class SparkSQLClient {
     //返回结果
     result
   }
+  /*
   def getGraphByCarNumber(carNumber : String) : String = {
     ""
+  }
+  */
+
+  def sql(query: String): String = {
+    test("sql" + query)
+  }
+
+  def getCarGraph(carNumber: String): String = {
+    test("CG" + carNumber)
   }
 }
 /*

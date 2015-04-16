@@ -28,22 +28,5 @@ class MapVertexInfo extends java.io.Serializable{
   def getLongitude : Double = {
     Longitude
   }
-  def getMapVertexRDD : ArrayBuffer[MapVertexInfo] = {
-    val mapVertexRDD = new ArrayBuffer[MapVertexInfo]()
-    val mapVertexFile = Source.fromFile(
-      "/home/xylr/software/Data/guangzhou/cpp/vertex.txt")
-    val line = mapVertexFile.getLines()
-    for(i <- line){
-      if(i.split("\t").length != 2){
-        println("input error!!!")
-      }
-      else{
-        val VertexNumber = i.split("\t")(0).toLong
-        val Latitude = i.split("\t")(1).split(" ")(0).toDouble
-        val Longitude = i.split("\t")(1).split(" ")(1).toDouble
-        mapVertexRDD += new MapVertexInfo(VertexNumber, Latitude, Longitude)
-      }
-    }
-    mapVertexRDD
-  }
+
 }

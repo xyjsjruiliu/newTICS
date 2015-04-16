@@ -3,7 +3,7 @@ package com.xy.lr.tics.spark
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import com.xy.lr.tics.properties.{TICSInfo, CarInfo, OldMessage}
+import com.xy.lr.tics.properties._
 import com.xy.lr.tics.spark.sql.{CarCaseClass, Person}
 import org.apache.spark.sql.SQLContext
 
@@ -30,13 +30,17 @@ class SparkEngine extends Thread{
   private var message : ArrayBuffer[String] = _
   private var ticsInfo : TICSInfo = _
   private var deZhouClient : DeZhouClientJava = _
+  private var mapVertexRDD : RDD[MapVertexInfo] = _
+  private var mapEdgeRDD : RDD[MapEdgeInfo] = _
+  private var intersectionpProRDD : RDD[IntersectionPro] = _
+  private var engineProperty : EngineProperty = _
 
 
 //  conf = new SparkConf().setMaster("local[2]").setAppName("defaultApp")
 //  sc = new SparkContext(conf)
 
   def this(MasterUrl : String, AppName : String, path : String){
-    this()
+    this
     //SparkConf
     sparkConf = new SparkConf().setMaster(MasterUrl).setAppName(AppName)
     //SparkContext
@@ -46,6 +50,10 @@ class SparkEngine extends Thread{
     //配置文件
     ticsInfo = new TICSInfo(path)
 //    import sqlContext.createSchemaRDD
+    engineProperty = new EngineProperty(path)
+  }
+  def sql(query : String): String ={
+    ""
   }
   def getCarGraph(carNumber : String) : String = {
     val carRDD = CarRDD.map( x => {
@@ -91,6 +99,12 @@ class SparkEngine extends Thread{
     //连接卡口服务器
     deZhouClient = new DeZhouClientJava(ticsInfo.getDeZhouServerUrl,
       ticsInfo.getDeZhouServerPort.toInt)
+
+    engineProperty.initEngineProperty()
+
+    mapVertexRDD = sparkContext.parallelize(engineProperty.getMapVertexInfoArray)
+    mapEdgeRDD = sparkContext.parallelize(engineProperty.getMapEdgeInfoArray)
+    intersectionpProRDD = sparkContext.parallelize(engineProperty.getIntersectionProArray)
   }
   override def run(): Unit ={
     println("start [ SparkEngine ] at " + getCurrentTime)

@@ -51,6 +51,9 @@ public class SparkSQLClientJava {
         //返回结果
         return getReply(reply);
     }
+    public String sql(String query){
+        return test("sql" + query);
+    }
     public String getCarGraph(String carNumber){
         return test("CG" + carNumber);
     }

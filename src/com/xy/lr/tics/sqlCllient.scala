@@ -8,6 +8,6 @@ import com.xy.lr.tics.spark.sql.{SparkSQLClientJava, SparkSQLClient}
 object sqlCllient {
   def main(args : Array[String]): Unit ={
     val sqlClient = new SparkSQLClientJava("TICSInfo.properties")
-    println(sqlClient.getCarGraph("10001"))
+    println(sqlClient.getCarGraph("10012"))
   }
 }
