@@ -5,18 +5,18 @@ import java.util.Date
 
 import com.xy.lr.tics.properties._
 import com.xy.lr.tics.spark.sql.{CarCaseClass, Person}
-import org.apache.spark.sql.SQLContext
+import org.apache.spark.sql.{Row, SQLContext, SchemaRDD}
 
 import scala.collection.mutable.ArrayBuffer
 
 //import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.SchemaRDD
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.SparkContext._
 
 /**
  * Created by xylr on 15-4-8.
+ * sparkEngine
  */
 class SparkEngine extends Thread{
   private var rdd : RDD[Int] = _
@@ -32,8 +32,9 @@ class SparkEngine extends Thread{
   private var deZhouClient : DeZhouClientJava = _
   private var mapVertexRDD : RDD[MapVertexInfo] = _
   private var mapEdgeRDD : RDD[MapEdgeInfo] = _
-  private var intersectionpProRDD : RDD[IntersectionPro] = _
+  private var intersectionProRDD : RDD[IntersectionPro] = _
   private var engineProperty : EngineProperty = _
+  private var blackListRDD : RDD[BlackList] = _
 
 
 //  conf = new SparkConf().setMaster("local[2]").setAppName("defaultApp")
@@ -53,6 +54,13 @@ class SparkEngine extends Thread{
     engineProperty = new EngineProperty(path)
   }
   def sql(query : String): String ={
+    val carRDD = CarRDD.map( x => {
+      new CarCaseClass(x.getCarNumber, x.getCrossNumber, x.getTime,
+        x.getGraph, x.getDirection)
+    })
+    val carSchemaRDD = sqlContext.createSchemaRDD(carRDD)
+    carSchemaRDD.registerTempTable("car")
+    val sqlResult = sqlContext.sql(query).collect()
     ""
   }
   def getCarGraph(carNumber : String) : String = {
@@ -104,7 +112,47 @@ class SparkEngine extends Thread{
 
     mapVertexRDD = sparkContext.parallelize(engineProperty.getMapVertexInfoArray)
     mapEdgeRDD = sparkContext.parallelize(engineProperty.getMapEdgeInfoArray)
-    intersectionpProRDD = sparkContext.parallelize(engineProperty.getIntersectionProArray)
+    intersectionProRDD = sparkContext.parallelize(engineProperty.getIntersectionProArray)
+    blackListRDD = sparkContext.parallelize(engineProperty.getBlackListArray)
+  }
+  def sqlBlackList(): String ={
+    val bl : RDD[Int] = blackListRDD.map( x => {
+      val carNumber = x.getCarNumber.toInt
+      //      val graph = x.getCarGraph.getGraph.toString
+      carNumber
+    })
+    @transient var list : String = ""
+    bl.collect().map( i => {
+      list = list + i + ":"
+    })
+    list = list.substring(0, list.length - 1)
+    list
+  }
+  def sqlGraphByBlackList(carNumber : String) : String = {
+    getCarGraph(carNumber)
+  }
+  def updateBlackList(blacklistRDD : RDD[BlackList],
+                      CarRDD : RDD[CarInfo]): RDD[BlackList] ={
+    val carRDD : RDD[(Int,CarInfo)] = CarRDD.map( x => {
+      val carNumber = x.getCarNumber.toInt
+//      val length = x.getGraph.toString
+      (carNumber,x)
+    })
+    val blRDD : RDD[(Int,CarInfo)] = blacklistRDD.map( x => {
+      val carNumber = x.getCarNumber.toInt
+//      val graph = x.getCarGraph.getGraph.toString
+      (carNumber, x.getCarGraph)
+    })
+    val joinRDD = blRDD.join(carRDD)
+    val subRDD = blRDD.subtractByKey(joinRDD)
+
+    val join = joinRDD.map( x => {
+      (x._1, x._2._2)
+    })
+    val newBlackListRDD = join.union(subRDD).map( x => {
+      new BlackList(x._1.toString, x._2)
+    })
+    newBlackListRDD
   }
   override def run(): Unit ={
     println("start [ SparkEngine ] at " + getCurrentTime)
@@ -124,6 +172,8 @@ class SparkEngine extends Thread{
         val notUseMessageRDD = getNotUseMessageRDD(sparkContext , message , oldMessageRDD , CarRDD)
         //make the graph
         CarRDD = makeTheGraph(sparkContext , message , CarRDD , oldMessageRDD)
+
+        blackListRDD = updateBlackList(blackListRDD, CarRDD)
         //update the old rdd
         oldMessageRDD = notUseMessageRDD
 

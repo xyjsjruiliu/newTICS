@@ -4,7 +4,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import com.xy.lr.tics.properties.TICSInfo
 import com.xy.lr.tics.spark.SparkEngine
+import org.apache.spark.sql.Row
 import org.zeromq.ZMQ
+
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created by xylr on 15-4-7.
@@ -43,12 +46,23 @@ class SparkSQLServer extends Thread{
     if(request.startsWith("CG")){
       sparkEngine.getCarGraph(request.substring(2,request.length))
     }
-    else if(request.startsWith("sql")){
+    /*else if(request.startsWith("sql")){
       sparkEngine.sql(request.substring(3, request.length))
-    }
+    }*/
     else{
       ""
     }
+  }
+  //还没有完成
+  def sql(query : String) : String = {
+    sparkEngine.sql(query.substring(3, query.length))
+  }
+  //使用:作为分割符
+  def sqlBlackList() : String = {
+    sparkEngine.sqlBlackList()
+  }
+  def sqlGraphByBlackList(carNumber : String) : String = {
+    sparkEngine.sqlGraphByBlackList(carNumber.substring(3,carNumber.length))
   }
   override def run(): Unit ={
 //    val context:  ZMQ.Context = ZMQ.context(1)
@@ -75,7 +89,20 @@ class SparkSQLServer extends Thread{
 //      val rdd = sparkEngine.getRDD.collect()(0)
 //      val name = sparkEngine.getPeoplesName
       //查询
-      val replyString: String = select(requestString) + " "
+      @transient var replyString: String = "no result"
+      if(requestString.startsWith("sql")){
+        replyString = sql(requestString) + " "
+      }
+      else if(requestString.startsWith("BL")){
+        replyString = sqlBlackList() + ""
+      }
+      else if(requestString.startsWith("GBL")){
+        replyString = sqlGraphByBlackList(requestString) + ""
+      }
+      else{
+        replyString = select(requestString) + " "
+      }
+
 
       val reply: Array[Byte] = makeReply(replyString)
 

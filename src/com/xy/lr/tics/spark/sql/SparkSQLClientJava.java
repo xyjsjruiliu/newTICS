@@ -51,6 +51,12 @@ public class SparkSQLClientJava {
         //返回结果
         return getReply(reply);
     }
+    public String sqlGrapgByBlackList(String carNumber){
+        return test("GBL" + carNumber);
+    }
+    public String sqlBlackList(){
+        return test("BL");
+    }
     public String sql(String query){
         return test("sql" + query);
     }
