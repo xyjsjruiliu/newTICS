@@ -11,7 +11,9 @@ import java.util.Date;
  */
 public class SparkSQLClientJava {
 //    private TICSInfoJava ticsInfo = null;
+    //zeroMQ
     private ZMQ.Context sparkSQLClientContext = ZMQ.context(1);
+    //设置模式
     private ZMQ.Socket sparkSQLClientSocket = sparkSQLClientContext.socket(ZMQ.REQ);
 
     public SparkSQLClientJava(String path){
@@ -21,23 +23,27 @@ public class SparkSQLClientJava {
         sparkSQLClientSocket.connect("tcp://" + ticsInfo.getSparkSQLServerUrl() +
                 ":" + ticsInfo.getSparkSQLServerPort());
     }
-    public String getCurrentTime(){
+    //获取当前时间
+    private String getCurrentTime(){
         Date date = new Date();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         return df.format(date);
     }
-    public byte[] makeRequest(String req){
+    //生成查询请求
+    private byte[] makeRequest(String req){
         String requestString = req + " ";
         byte[] request = requestString.getBytes();
         request[request.length - 1] = 0;
         return request;
     }
-    public String getReply(byte[] rep){
+    //解析查询结果
+    private String getReply(byte[] rep){
         return new String(rep, 0, rep.length - 1);
     }
-    public String test(String req){
+    private String test(String req){
         System.out.println("Connecting to [ SparkSQLServer ] at " + getCurrentTime());
 
+        //生成查询
         byte[] request = makeRequest(req);
 
         System.out.println("Sending request : " + req);
@@ -51,15 +57,19 @@ public class SparkSQLClientJava {
         //返回结果
         return getReply(reply);
     }
+    //从黑名单中查询车辆轨迹
     public String sqlGrapgByBlackList(String carNumber){
         return test("GBL" + carNumber);
     }
+    //获取黑名单列表
     public String sqlBlackList(){
         return test("BL");
     }
+    //使用sql查询车辆信息表
     public String sql(String query){
         return test("sql" + query);
     }
+    //通过车牌号查询车辆轨迹
     public String getCarGraph(String carNumber){
         return test("CG" + carNumber);
     }

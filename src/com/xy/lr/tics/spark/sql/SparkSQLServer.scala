@@ -2,6 +2,7 @@ package com.xy.lr.tics.spark.sql
 
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.xy.lr.tics.json.{carTraceJson, StatusOfJson, blackListJson}
 import com.xy.lr.tics.properties.TICSInfo
 import com.xy.lr.tics.spark.SparkEngine
 import org.apache.spark.sql.Row
@@ -44,7 +45,23 @@ class SparkSQLServer extends Thread{
   }
   def select(request : String) : String = {
     if(request.startsWith("CG")){
-      sparkEngine.getCarGraph(request.substring(2,request.length))
+      val carGraph = sparkEngine.getCarGraph(request.substring(2,request.length))
+
+      if(carGraph.equals("no result")){
+        val cG = new carTraceJson(StatusOfJson.INEXISTENCE, "", "")
+        cG.getCarTraceJson
+      }
+      else {
+        try{
+          val cG = new carTraceJson(StatusOfJson.SUCCESS, carGraph.split(",")(0), "")
+          cG.getCarTraceJson
+        }catch {
+          case e : Exception =>
+            //内部错误
+            new carTraceJson(StatusOfJson.INTERNAL_ERROR,"","").getCarTraceJson
+        }
+
+      }
     }
     /*else if(request.startsWith("sql")){
       sparkEngine.sql(request.substring(3, request.length))
@@ -59,7 +76,24 @@ class SparkSQLServer extends Thread{
   }
   //使用:作为分割符
   def sqlBlackList() : String = {
-    sparkEngine.sqlBlackList()
+    val bl = sparkEngine.sqlBlackList()
+
+    try{
+      if(bl.split(":").length == 0){
+        //不存在黑名单
+        val blresult = new blackListJson(StatusOfJson.INEXISTENCE,"")
+        blresult.getBlackListJson
+      }
+      else{
+        val blresult = new blackListJson(StatusOfJson.SUCCESS,bl)
+        blresult.getBlackListJson
+      }
+    }catch {
+      case e : Exception =>
+        //内部错误
+        new blackListJson(StatusOfJson.INTERNAL_ERROR,"").getBlackListJson
+    }
+
   }
   def sqlGraphByBlackList(carNumber : String) : String = {
     sparkEngine.sqlGraphByBlackList(carNumber.substring(3,carNumber.length))
